@@ -71,12 +71,13 @@ window.onload = function () {
     
     function setupAssets () {
         
+        //load specific tiles from tileset as images
+        //game.load.image();
+        
         //load game assets
         game.load.tilemap('testlevel1', 'assets/tilemaps/leveltest.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.spritesheet('testTiles', 'assets/tilesets/color_tileset_16x16_Eiyeron_CC-BY-SA-3.0_8.png', 16, 16);
         
-        //load specific tiles from tileset as images
-        //game.load.image();
         
         game.load.spritesheet('player', 'assets/sprites/char_slime.png', 16, 16);
         
@@ -234,10 +235,10 @@ window.onload = function () {
         var result = findObjectsByType('playerStart', currentMap, 'objectsLayer');
         player = game.add.sprite(result[0].x, result[0].y, 'player');
         
-//      player.animations.add('idle-up', [], 10, true);
-//      player.animations.add('idle-down', [], 10, true);
-//      player.animations.add('idle-left', [], 10, true);
-//      player.animations.add('idle-right', [], 10, true);
+        // player.animations.add('idle-up', [], 5, true);
+        // player.animations.add('idle-down', [], 5, true);
+        // player.animations.add('idle-left', [], 5, true);
+        // player.animations.add('idle-right', [], 5, true);
         player.animations.add('up', [20, 21, 22, 23], 5, true);
         player.animations.add('down', [0, 1, 2, 3], 5, true);
         player.animations.add('right', [10, 11, 12, 13], 5, true);
@@ -247,7 +248,8 @@ window.onload = function () {
         player.body.colliderWorldBounds = true;
         
         //resizing collider of player from sprite
-        player.body.setSize(player.width - 2, player.height - 2, 1, 1);
+        //player.body.setSize(player.width - 2, player.height - 2, 1, 1);
+        player.body.setSize(player.width - 2, player.height / 2 - 2, 1, player.height / 2 + 1);
         
         game.physics.arcade.enable(player);
         game.camera.follow(player);
