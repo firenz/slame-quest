@@ -249,7 +249,7 @@ window.onload = function () {
         
         //resizing collider of player from sprite
         //player.body.setSize(player.width - 2, player.height - 2, 1, 1);
-        player.body.setSize(player.width - 2, player.height / 2 - 2, 1, player.height / 2 + 1);
+        player.body.setSize(player.width - 8, player.height / 2 - 2, 4, player.height / 2 + 1);
         
         game.physics.arcade.enable(player);
         game.camera.follow(player);
