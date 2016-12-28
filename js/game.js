@@ -17,6 +17,9 @@ window.onload = function () {
     
     var player;
     var cursors;
+    var graphics;
+    var text;
+    var textBox;
     
     //var for levels
     var map;
@@ -37,7 +40,7 @@ window.onload = function () {
     }
 
     function create() {
-        
+
         map = game.add.tilemap('testlevel1');
         
         //the first parameter is the tileset name as specified in Tiled, the second is the key to the asset
@@ -59,6 +62,13 @@ window.onload = function () {
         playerStart(map);
         
         //map = setupLevel('testlevel1', 'testTiles', 'backgroundLayer', 'blockedLayer', 'objectLayer');
+
+        textBox = game.add.graphics(0, 0);
+        // graphics.fixedToCamera = true;
+        // graphics.lineStyle(2, 0x0000FF, 1);
+        // graphics.drawRect(game.camera.view.width - 9 * 16, game.camera.view.height - 4 * 16, 8 * 16, 3 * 16);
+        // window.graphics = graphics;
+        drawTextBox();
 
     }
 
@@ -186,7 +196,7 @@ window.onload = function () {
         else{
             //Idle animations
             
-            //TODO depending of the facing direction of player the idle changes
+            //TODO: depending of the facing direction of player the idle changes
         }
     }
     
@@ -297,6 +307,21 @@ window.onload = function () {
             sprite[key] = element.properties[key];
         });
         
+    }
+
+    //create dialogue box shape, if parameters when calling the function
+    // are not given the default color applies
+    function drawTextBox(fill, style) {
+
+        textBox.clear();
+
+        textBox.beginFill(fill);
+        textBox.lineStyle(0, style, 1);
+        textBox.moveTo(0, 0);
+
+        textBox.fixedToCamera = true;
+        textBox.drawRect(game.camera.view.width - 9 * 16, game.camera.view.height - 4 * 16, 8 * 16, 3 * 16);
+
     }
 
 };
