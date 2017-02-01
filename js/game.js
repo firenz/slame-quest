@@ -21,10 +21,12 @@ window.onload = function () {
     var font;
     
     //var for dialogue boxes
+    var dialogue;
     var fontStyle;
-    var text;
-    var textMargin = 4;
-    var textBox;
+    var dialogueText;
+    var dialogueBoxMarginX = 4;
+    var dialogueBoxMarginY = 2;
+    var dialogueBox;
 
     //var for levels
     var map;
@@ -46,7 +48,7 @@ window.onload = function () {
 
     function create() {
         
-        font = game.add.retroFont('mono-retrofont', 6, 8, Phaser.RetroFont.TEXT_SET1, 571, 0, 0, 1);
+        font = game.add.retroFont('mono-retrofont', 6, 9, Phaser.RetroFont.TEXT_SET1);
 
         map = game.add.tilemap('testlevel1');
 
@@ -67,8 +69,9 @@ window.onload = function () {
         createStairs(map);
         playerStart(map);
 
-        setupTextBox();
-        drawTextBox("hola!");
+        setupDialogueBox();
+        clearDialogueBox();
+        drawDialogueBox("Hello!\nPress Z to close the\ndialogue.");
     }
 
     function update() {
@@ -84,7 +87,7 @@ window.onload = function () {
         //game.load.image();
 
         //load game assets
-        game.load.image('mono-retrofont', 'assets/fonts/5x8mono.png');
+        game.load.image('mono-retrofont', 'assets/fonts/5x8mono-transparent.png');
         game.load.tilemap('testlevel1', 'assets/tilemaps/leveltest.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.spritesheet('testTiles', 'assets/tilesets/color_tileset_16x16_Eiyeron_CC-BY-SA-3.0_8.png', 16, 16);
 
@@ -180,7 +183,7 @@ window.onload = function () {
         if (player.isTalking) {
             if (cursors.accept.isDown) {
                 console.log('pressed Z');
-                clearTextBox();
+                clearDialogueBox();
             }
         }
         else {
@@ -286,8 +289,7 @@ window.onload = function () {
 
     function collect(player, collectable) {
         console.log('yummy!');
-        //console.log("font family: " + text.font);
-        drawTextBox("yummy! yummy! yummy! yummy! yummy! yummy! yummy! yummy! yummy! yummy! yummy! yummy!");
+        drawDialogueBox("Yummy!");
 
         //remove sprite
         collectable.destroy();
@@ -297,7 +299,7 @@ window.onload = function () {
         console.log('entering stairs that will take you to ' + stairs.targetTilemap + ' on x:' + stairs.targetX + ' and y:' + stairs.targetY);
         
         //disabled because it makes an infinite loop since it executes all frames instead of one time
-        //drawTextBox('entering stairs that will take you to ' + stairs.targetTilemap + ' on x:' + stairs.targetX + ' and y:'+ stairs.targetY);
+        //drawDialogueBox('entering stairs that will take you to ' + stairs.targetTilemap + ' on x:' + stairs.targetX + ' and y:'+ stairs.targetY);
     }
 
     //find objects in a Tiled layer that contains a property called "type" equal to a certain value
@@ -331,29 +333,20 @@ window.onload = function () {
 
     }
 
-    function setupTextBox(fill) {
-        var dialogue = game.add.graphics(game.camera.view.width - 9 * 16, game.camera.view.height - 4 * 16);
+    function setupDialogueBox() {
+        dialogue = game.add.graphics(game.camera.view.width - 9 * 16, game.camera.view.height - 4 * 16);
         dialogue.fixedToCamera = true;
         dialogue.anchor.setTo(0, 0);
 
-        textBox = dialogue.addChild(game.add.graphics(0, 0));
-        textBox.beginFill("#000000");
-        textBox.drawRect(0, 0, 8 * 16, 3 * 16);
-
-        //fontStyle = { font: "g.b.bootregular", fill: "#ff0044", wordWrap: true, wordWrapWidth: textBox.width - textMargin * 2, align: "left", fontSize: "14px" };
-        //text = dialogue.addChild(game.add.text(textMargin, 0, "", fontStyle));
-        text = dialogue.addChild(game.add.image(0, 0, font));
-        text.fixedToCamera = true;
-        text.tint = "#ff0044";
-        text.anchor.setTo(0, 0);
-        text.lineSpacing = -7;
+        dialogueBox = dialogue.addChild(game.add.graphics(0, 0));
+        dialogueBox.beginFill("#000000");
+        dialogueBox.drawRect(0, 0, 8 * 16, 3 * 16);
         
-        clearTextBox();
+        dialogueText = dialogue.addChild(game.add.image(dialogueBoxMarginX, dialogueBoxMarginY, font));
+        font.setText("", true, 0, 0, Phaser.RetroFont.ALIGN_LEFT, true);
     }
 
-    //create dialogue box shape, if parameters when calling the function
-    // are not given the default color applies
-    function drawTextBox(string) {
+    function drawDialogueBox(string) {
         if (player.y <= (game.camera.x + game.camera.view.height / 2)){
             
         }
@@ -362,14 +355,12 @@ window.onload = function () {
         }
 
         player.isTalking = true;
-        //text.text = string;
         font.text = string;
-        textBox.alpha = 1;
+        dialogueBox.alpha = 1;
     }
 
-    function clearTextBox() {
-        textBox.alpha = 0;
-        //text.text = "";
+    function clearDialogueBox() {
+        dialogueBox.alpha = 0;
         font.text = "";
         player.isTalking = false;
     }
