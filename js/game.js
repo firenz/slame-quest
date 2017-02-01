@@ -18,15 +18,15 @@ window.onload = function () {
     var player;
     var cursors;
     var graphics;
-    var font;
     
     //var for dialogue boxes
     var dialogue;
-    var fontStyle;
+    var font;
     var dialogueText;
+    var dialogueBox;
     var dialogueBoxMarginX = 4;
     var dialogueBoxMarginY = 2;
-    var dialogueBox;
+    var drawDialogueSignal;
 
     //var for levels
     var map;
@@ -71,6 +71,8 @@ window.onload = function () {
 
         setupDialogueBox();
         clearDialogueBox();
+        drawDialogueSignal = new Phaser.Signal();
+        drawDialogueSignal.addOnce(drawDialogueBox, this);
         drawDialogueBox("Hello!\nPress Z to close the\ndialogue.");
     }
 
@@ -296,10 +298,8 @@ window.onload = function () {
     }
 
     function enterStairs(player, stairs) {
-        console.log('entering stairs that will take you to ' + stairs.targetTilemap + ' on x:' + stairs.targetX + ' and y:' + stairs.targetY);
+        drawDialogueSignal.dispatch('Entering stairs that\nwill take you to\n' + stairs.targetTilemap + '\non x:' + stairs.targetX + ' and y:'+ stairs.targetY);
         
-        //disabled because it makes an infinite loop since it executes all frames instead of one time
-        //drawDialogueBox('entering stairs that will take you to ' + stairs.targetTilemap + ' on x:' + stairs.targetX + ' and y:'+ stairs.targetY);
     }
 
     //find objects in a Tiled layer that contains a property called "type" equal to a certain value
