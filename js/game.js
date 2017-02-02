@@ -26,7 +26,6 @@ window.onload = function () {
     var dialogueBox;
     var dialogueBoxMarginX = 4;
     var dialogueBoxMarginY = 2;
-    var drawDialogueSignal;
 
     //var for levels
     var map;
@@ -36,6 +35,9 @@ window.onload = function () {
     //elements that will appear in the levels
     var items;
     var stairs;
+    
+    //flags for collissions
+    var isCollidingStairs = false;
 
     function preload() {
 
@@ -71,8 +73,6 @@ window.onload = function () {
 
         setupDialogueBox();
         clearDialogueBox();
-        drawDialogueSignal = new Phaser.Signal();
-        drawDialogueSignal.addOnce(drawDialogueBox, this);
         drawDialogueBox("Hello!\nPress Z to close the\ndialogue.");
     }
 
@@ -92,7 +92,6 @@ window.onload = function () {
         game.load.image('mono-retrofont', 'assets/fonts/5x8mono-transparent.png');
         game.load.tilemap('testlevel1', 'assets/tilemaps/leveltest.json', null, Phaser.Tilemap.TILED_JSON);
         game.load.spritesheet('testTiles', 'assets/tilesets/color_tileset_16x16_Eiyeron_CC-BY-SA-3.0_8.png', 16, 16);
-
 
         game.load.spritesheet('player', 'assets/sprites/char_slime.png', 16, 16);
 
@@ -228,8 +227,9 @@ window.onload = function () {
         //collisions
         game.physics.arcade.collide(player, blockedLayer);
         game.physics.arcade.overlap(player, items, collect, null, this);
-        game.physics.arcade.overlap(player, stairs, enterStairs, null, this);
-
+        //game.physics.arcade.overlap(player, stairs, enterStairs, null, this);
+        checkOverlapStairs(player);
+        game.physics.arcade.overlap(player, stairs, enterStairs, processCallbackEnterStairs, this);
     }
 
     function createItems (currentMap) {
@@ -297,9 +297,31 @@ window.onload = function () {
         collectable.destroy();
     }
 
-    function enterStairs(player, stairs) {
-        drawDialogueSignal.dispatch('Entering stairs that\nwill take you to\n' + stairs.targetTilemap + '\non x:' + stairs.targetX + ' and y:'+ stairs.targetY);
-        
+    function enterStairs(player, stairs) {        
+        drawDialogueBox('Entering stairs that\nwill take you to\n' + stairs.targetTilemap + '\non x:' + stairs.targetX + ' and y:'+ stairs.targetY);
+    }
+    
+    function processCallbackEnterStairs() {
+        if(!isCollidingStairs && checkOverlapStairs(player)) {
+            isCollidingStairs = true;
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    
+    function checkOverlapStairs(obj1) {
+        var boundsA = obj1.getBounds();
+        var boundsB = stairs.getBounds();
+
+        if(Phaser.Rectangle.intersects(boundsA, boundsB)) {
+            return true;
+        }
+        else{
+            isCollidingStairs = false;
+            return false;
+        }
     }
 
     //find objects in a Tiled layer that contains a property called "type" equal to a certain value
