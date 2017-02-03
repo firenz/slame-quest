@@ -15,9 +15,11 @@ window.onload = function () {
         update: update
     });
 
-    var player;
     var cursors;
     var graphics;
+
+    //var for player
+    var player;
 
     //var for levels
     var map;
@@ -142,7 +144,8 @@ window.onload = function () {
             'down': Phaser.Keyboard.DOWN,
             'left': Phaser.Keyboard.LEFT,
             'right': Phaser.Keyboard.RIGHT,
-            'accept': Phaser.Keyboard.Z
+            'accept': Phaser.Keyboard.Z,
+            'cancel': Phaser.Keyboard.X
         });
 
     }
@@ -195,31 +198,154 @@ window.onload = function () {
     function updatePlayerMovement () {
 
         //player movement
-        if (cursors.up.isDown) {
-            player.body.velocity.y -= 50;
+        var velocity = { x: 0, y: 0 };
 
-            player.animations.play('up');
-        }
-        else if (cursors.down.isDown) {
-            player.body.velocity.y += 50;
-
+        switch (player.animations.currentAnim.name) {
+          case 'up':
+          if (cursors.up.isDown) {
+            velocity.y = -50;
+            if (cursors.right.isDown) {
+              velocity.x = 50;
+            }
+            else if (cursors.left.isDown) {
+              velocity.x = -50;
+            }
+          }
+          else if (cursors.down.isDown) {
+            velocity.y = 50;
             player.animations.play('down');
-        }
-        else if (cursors.left.isDown) {
-            player.body.velocity.x -= 50;
-
+          }
+          else {
+            if (cursors.right.isDown) {
+              velocity.x = 50;
+              player.animations.play('right');
+            }
+            else if (cursors.left.isDown) {
+              velocity.x = -50;
+              player.animations.play('left');
+            }
+          }
+            break;
+          case 'down':
+          if (cursors.down.isDown) {
+            velocity.y = 50;
+            if (cursors.right.isDown) {
+              velocity.x = 50;
+            }
+            else if (cursors.left.isDown) {
+              velocity.x = -50;
+            }
+          }
+          else if (cursors.up.isDown) {
+            velocity.y = -50;
+            player.animations.play('up');
+          }
+          else {
+            if (cursors.right.isDown) {
+              velocity.x = 50;
+              player.animations.play('right');
+            }
+            else if (cursors.left.isDown) {
+              velocity.x = -50;
+              player.animations.play('left');
+            }
+          }
+            break;
+          case 'right':
+          if (cursors.right.isDown) {
+            velocity.x = 50;
+            if (cursors.up.isDown) {
+              velocity.y = -50;
+            }
+            else if (cursors.down.isDown) {
+              velocity.y = 50;
+            }
+          }
+          else if (cursors.left.isDown) {
+            velocity.x = -50;
             player.animations.play('left');
-        }
-        else if (cursors.right.isDown) {
-            player.body.velocity.x += 50;
-
+          }
+          else {
+            if (cursors.up.isDown) {
+              velocity.y = -50;
+              player.animations.play('up');
+            }
+            else if (cursors.down.isDown) {
+              velocity.y = 50;
+              player.animations.play('down');
+            }
+          }
+            break;
+          case 'left':
+          if (cursors.left.isDown) {
+            velocity.x = -50;
+            if (cursors.up.isDown) {
+              velocity.y = -50;
+            }
+            else if (cursors.down.isDown) {
+              velocity.y = 50;
+            }
+          }
+          else if (cursors.right.isDown) {
+            velocity.x = 50;
             player.animations.play('right');
-        }
-        else{
-            //Idle animations
+          }
+          else {
+            if (cursors.up.isDown) {
+              velocity.y = -50;
+              player.animations.play('up');
+            }
+            else if (cursors.down.isDown) {
+              velocity.y = 50;
+              player.animations.play('down');
+            }
+          }
+            break;
+          case 'idle-up': case 'idle-down': case 'idle-right': case 'idle-left':
+            if (cursors.up.isDown) {
+              velocity.y = -50;
+              player.animations.play('up');
+            }
 
-            //TODO: depending of the facing direction of player the idle changes
+            if (cursors.down.isDown) {
+              velocity.y = 50;
+              player.animations.play('down');
+            }
+
+            if (cursors.right.isDown) {
+              velocity.x = 50;
+              player.animations.play('right');
+            }
+
+            if (cursors.left.isDown) {
+              velocity.x = -50;
+              player.animations.play('left');
+            }
+            break;
+          default:
+
         }
+
+        if (velocity.x === 0 && velocity.y === 0) {
+          switch (player.animations.currentAnim.name) {
+            case 'up':
+              player.animations.play('idle-up');
+              break;
+            case 'down':
+              player.animations.play('idle-down');
+              break;
+            case 'right':
+              player.animations.play('idle-right');
+              break;
+            case 'left':
+              player.animations.play('idle-left');
+              break;
+            default:
+            }
+        }
+
+        player.body.velocity.x = velocity.x;
+        player.body.velocity.y = velocity.y;
     }
 
     function updateCollissions () {
@@ -264,11 +390,10 @@ window.onload = function () {
         var result = findObjectsByType('playerStart', currentMap, 'objectsLayer');
         player = game.add.sprite(result[0].x, result[0].y, 'player');
 
-        //TODO add all the animations
-        // player.animations.add('idle-up', [], 5, true);
-        // player.animations.add('idle-down', [], 5, true);
-        // player.animations.add('idle-left', [], 5, true);
-        // player.animations.add('idle-right', [], 5, true);
+        player.animations.add('idle-up', [20, 24], 5, true);
+        player.animations.add('idle-down', [0, 4], 5, true);
+        player.animations.add('idle-left', [30, 34], 5, true);
+        player.animations.add('idle-right', [10, 14], 5, true);
         player.animations.add('up', [20, 21, 22, 23], 5, true);
         player.animations.add('down', [0, 1, 2, 3], 5, true);
         player.animations.add('right', [10, 11, 12, 13], 5, true);
@@ -282,9 +407,17 @@ window.onload = function () {
 
         game.physics.arcade.enable(player);
         game.camera.follow(player);
-        player.animations.play('down');
+        player.animations.play('idle-down');
 
         //TODO: make an enum with the different directions the player can face
+        var facingDirections = {
+            UP : 0,
+            DOWN : 1,
+            RIGHT : 2,
+            LEFT : 3
+        };
+        player.currentFacingDirection = facingDirections.DOWN;
+
         //TODO: make an enum with all the possible states for player and assign the current one
         player.isTalking = false;
     }
