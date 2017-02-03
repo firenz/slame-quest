@@ -18,14 +18,6 @@ window.onload = function () {
     var player;
     var cursors;
     var graphics;
-    
-    //var for dialogue boxes
-    var dialogue;
-    var font;
-    var dialogueText;
-    var dialogueBox;
-    var dialogueBoxMarginX = 4;
-    var dialogueBoxMarginY = 2;
 
     //var for levels
     var map;
@@ -35,9 +27,17 @@ window.onload = function () {
     //elements that will appear in the levels
     var items;
     var stairs;
-    
+
     //flags for collissions
     var isCollidingStairs = false;
+
+    //var for dialogue boxes
+    var dialogue;
+    var font;
+    var dialogueText;
+    var dialogueBox;
+    var dialogueBoxMarginX = 4;
+    var dialogueBoxMarginY = 6;
 
     function preload() {
 
@@ -49,7 +49,7 @@ window.onload = function () {
     }
 
     function create() {
-        
+
         font = game.add.retroFont('mono-retrofont', 6, 9, Phaser.RetroFont.TEXT_SET1);
 
         map = game.add.tilemap('testlevel1');
@@ -73,7 +73,7 @@ window.onload = function () {
 
         setupDialogueBox();
         clearDialogueBox();
-        drawDialogueBox("Hello!\nPress Z to close the\ndialogue.");
+        drawDialogueBox("Hello!\nPress Z to close the\ndialogue.", "up");
     }
 
     function update() {
@@ -290,17 +290,16 @@ window.onload = function () {
     }
 
     function collect(player, collectable) {
-        console.log('yummy!');
         drawDialogueBox("Yummy!");
 
         //remove sprite
         collectable.destroy();
     }
 
-    function enterStairs(player, stairs) {        
+    function enterStairs(player, stairs) {
         drawDialogueBox('Entering stairs that\nwill take you to\n' + stairs.targetTilemap + '\non x:' + stairs.targetX + ' and y:'+ stairs.targetY);
     }
-    
+
     function processCallbackEnterStairs() {
         if(!isCollidingStairs && checkOverlapStairs(player)) {
             isCollidingStairs = true;
@@ -310,7 +309,7 @@ window.onload = function () {
             return false;
         }
     }
-    
+
     function checkOverlapStairs(obj1) {
         var boundsA = obj1.getBounds();
         var boundsB = stairs.getBounds();
@@ -363,17 +362,21 @@ window.onload = function () {
         dialogueBox = dialogue.addChild(game.add.graphics(0, 0));
         dialogueBox.beginFill("#000000");
         dialogueBox.drawRect(0, 0, 8 * 16, 3 * 16);
-        
+
         dialogueText = dialogue.addChild(game.add.image(dialogueBoxMarginX, dialogueBoxMarginY, font));
-        font.setText("", true, 0, 0, Phaser.RetroFont.ALIGN_LEFT, true);
+        font.setText("", true, -1, 0, Phaser.RetroFont.ALIGN_LEFT, true);
     }
 
-    function drawDialogueBox(string) {
-        if (player.y <= (game.camera.x + game.camera.view.height / 2)){
-            
+    function drawDialogueBox(string, mode = "bottom") {
+        console.log("drawDialogueBox mode: " + mode);
+        if (mode === "bottom"){
+            dialogue.cameraOffset.y = game.camera.height - (4 * 16 - 16 * 0.5);
         }
-        else {
-            
+        else if(mode === "up") {
+            dialogue.cameraOffset.y = (1 * 16 - 16 * 0.5);
+        }
+        else{
+          return;
         }
 
         player.isTalking = true;
