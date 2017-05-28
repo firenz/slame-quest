@@ -36,10 +36,6 @@ window.onload = function () {
     //var for dialogue boxes
     var dialogue;
     var font;
-    var dialogueText;
-    var dialogueBox;
-    var dialogueBoxMarginX = 4;
-    var dialogueBoxMarginY = 6;
 
     function preload() {
 
@@ -73,14 +69,18 @@ window.onload = function () {
         createStairs(map);
         playerStart(map);
 
-        setupDialogueBox();
-        clearDialogueBox();
-        drawDialogueBox("Hello!\nPress Z to close the\ndialogue.", "up");
+        dialogue = new Dialogue(game, font);
+        dialogue.write(game, player, "Hello!\nPress Z to close the \ndialogue.", "up");
     }
 
     function update() {
 
-        updatePlayerInput();
+        if(player.isTalking){
+          if(cursors.accept.isDown){
+            console.log("Pressed Z");
+            dialogue.clear(player);
+          }
+        }
         updateCollissions();
 
     }
@@ -130,14 +130,11 @@ window.onload = function () {
     }
 
     function setupPhysics () {
-
         //physics system for movement
         game.physics.startSystem(Phaser.Physics.ARCADE);
-
     }
 
     function setupControls () {
-
         //controls
         cursors = game.input.keyboard.addKeys({
             'up': Phaser.Keyboard.UP,
@@ -147,7 +144,6 @@ window.onload = function () {
             'accept': Phaser.Keyboard.Z,
             'cancel': Phaser.Keyboard.X
         });
-
     }
 
     function setupLevel (tilemapName, tilesetName, backgroundLayerName, blockedLayerName, objectLayerName) {
@@ -179,181 +175,14 @@ window.onload = function () {
 
     }
 
-    function updatePlayerInput() {
-        //reset velocity in each update
-        player.body.velocity.y = 0;
-        player.body.velocity.x = 0;
-
-        if (player.isTalking) {
-            if (cursors.accept.isDown) {
-                console.log('pressed Z');
-                clearDialogueBox();
-            }
-        }
-        else {
-            updatePlayerMovement();
-        }
-    }
-
-    function updatePlayerMovement () {
-
-        //player movement
-        var velocity = { x: 0, y: 0 };
-
-        switch (player.animations.currentAnim.name) {
-          case 'up':
-          if (cursors.up.isDown) {
-            velocity.y = -50;
-            if (cursors.right.isDown) {
-              velocity.x = 50;
-            }
-            else if (cursors.left.isDown) {
-              velocity.x = -50;
-            }
-          }
-          else if (cursors.down.isDown) {
-            velocity.y = 50;
-            player.animations.play('down');
-          }
-          else {
-            if (cursors.right.isDown) {
-              velocity.x = 50;
-              player.animations.play('right');
-            }
-            else if (cursors.left.isDown) {
-              velocity.x = -50;
-              player.animations.play('left');
-            }
-          }
-            break;
-          case 'down':
-          if (cursors.down.isDown) {
-            velocity.y = 50;
-            if (cursors.right.isDown) {
-              velocity.x = 50;
-            }
-            else if (cursors.left.isDown) {
-              velocity.x = -50;
-            }
-          }
-          else if (cursors.up.isDown) {
-            velocity.y = -50;
-            player.animations.play('up');
-          }
-          else {
-            if (cursors.right.isDown) {
-              velocity.x = 50;
-              player.animations.play('right');
-            }
-            else if (cursors.left.isDown) {
-              velocity.x = -50;
-              player.animations.play('left');
-            }
-          }
-            break;
-          case 'right':
-          if (cursors.right.isDown) {
-            velocity.x = 50;
-            if (cursors.up.isDown) {
-              velocity.y = -50;
-            }
-            else if (cursors.down.isDown) {
-              velocity.y = 50;
-            }
-          }
-          else if (cursors.left.isDown) {
-            velocity.x = -50;
-            player.animations.play('left');
-          }
-          else {
-            if (cursors.up.isDown) {
-              velocity.y = -50;
-              player.animations.play('up');
-            }
-            else if (cursors.down.isDown) {
-              velocity.y = 50;
-              player.animations.play('down');
-            }
-          }
-            break;
-          case 'left':
-          if (cursors.left.isDown) {
-            velocity.x = -50;
-            if (cursors.up.isDown) {
-              velocity.y = -50;
-            }
-            else if (cursors.down.isDown) {
-              velocity.y = 50;
-            }
-          }
-          else if (cursors.right.isDown) {
-            velocity.x = 50;
-            player.animations.play('right');
-          }
-          else {
-            if (cursors.up.isDown) {
-              velocity.y = -50;
-              player.animations.play('up');
-            }
-            else if (cursors.down.isDown) {
-              velocity.y = 50;
-              player.animations.play('down');
-            }
-          }
-            break;
-          case 'idle-up': case 'idle-down': case 'idle-right': case 'idle-left':
-            if (cursors.up.isDown) {
-              velocity.y = -50;
-              player.animations.play('up');
-            }
-
-            if (cursors.down.isDown) {
-              velocity.y = 50;
-              player.animations.play('down');
-            }
-
-            if (cursors.right.isDown) {
-              velocity.x = 50;
-              player.animations.play('right');
-            }
-
-            if (cursors.left.isDown) {
-              velocity.x = -50;
-              player.animations.play('left');
-            }
-            break;
-          default:
-
-        }
-
-        if (velocity.x === 0 && velocity.y === 0) {
-          switch (player.animations.currentAnim.name) {
-            case 'up':
-              player.animations.play('idle-up');
-              break;
-            case 'down':
-              player.animations.play('idle-down');
-              break;
-            case 'right':
-              player.animations.play('idle-right');
-              break;
-            case 'left':
-              player.animations.play('idle-left');
-              break;
-            default:
-            }
-        }
-
-        player.body.velocity.x = velocity.x;
-        player.body.velocity.y = velocity.y;
-    }
-
     function updateCollissions () {
 
         //collisions
         game.physics.arcade.collide(player, blockedLayer);
+        //TODO: Maybe as a future release, there will be custom collisions between player and blockedLayer
+        //game.physics.arcade.overlap(player, blockedLayer, processCollisionBlockedLayer, null, this);
+
         game.physics.arcade.overlap(player, items, collect, null, this);
-        //game.physics.arcade.overlap(player, stairs, enterStairs, null, this);
         checkOverlapStairs(player);
         game.physics.arcade.overlap(player, stairs, enterStairs, processCallbackEnterStairs, this);
     }
@@ -385,89 +214,11 @@ window.onload = function () {
     }
 
     function playerStart(currentMap) {
-
         //create player
         var result = findObjectsByType('playerStart', currentMap, 'objectsLayer');
-        player = game.add.sprite(result[0].x, result[0].y, 'player');
-
-        player.animations.add('idle-up', [20, 24], 5, true);
-        player.animations.add('idle-down', [0, 4], 5, true);
-        player.animations.add('idle-left', [30, 34], 5, true);
-        player.animations.add('idle-right', [10, 14], 5, true);
-        player.animations.add('up', [20, 21, 22, 23], 5, true);
-        player.animations.add('down', [0, 1, 2, 3], 5, true);
-        player.animations.add('right', [10, 11, 12, 13], 5, true);
-        player.animations.add('left', [30, 31, 32, 33], 5, true);
-
-        game.physics.arcade.enable(player);
-        player.body.colliderWorldBounds = true;
-
-        //resizing collider of player from sprite
-        player.body.setSize(player.width - 8, player.height / 2 - 2, 4, player.height / 2 + 1);
-
-        game.physics.arcade.enable(player);
-        game.camera.follow(player);
-        player.animations.play('idle-down');
-
-        //TODO: make an enum with the different directions the player can face
-        var facingDirections = {
-            UP : 0,
-            DOWN : 1,
-            RIGHT : 2,
-            LEFT : 3
-        };
-        player.currentFacingDirection = facingDirections.DOWN;
-
-        //TODO: make an enum with all the possible states for player and assign the current one
-        player.isTalking = false;
+        player = new Player(game, cursors, result[0].x, result[0].y, 'player');
     }
 
-    function collect(player, collectable) {
-        drawDialogueBox("Yummy!");
-
-        //remove sprite
-        collectable.destroy();
-    }
-
-    function enterStairs(player, stairs) {
-        drawDialogueBox('Entering stairs that\nwill take you to\n' + stairs.targetTilemap + '\non x:' + stairs.targetX + ' and y:'+ stairs.targetY);
-    }
-
-    function processCallbackEnterStairs() {
-        if(!isCollidingStairs && checkOverlapStairs(player)) {
-            isCollidingStairs = true;
-            return true;
-        }
-        else{
-            return false;
-        }
-    }
-
-    function checkOverlapStairs(obj1) {
-        var boundsA = obj1.getBounds();
-        var boundsB = stairs.getBounds();
-
-        if(Phaser.Rectangle.intersects(boundsA, boundsB)) {
-            return true;
-        }
-        else{
-            isCollidingStairs = false;
-            return false;
-        }
-    }
-
-    //find objects in a Tiled layer that contains a property called "type" equal to a certain value
-    function findObjectsByType(type, map, layer) {
-
-        var result = new Array();
-        map.objects[layer].forEach(function(element) {
-            if(element.properties.type === type) {
-                result.push(element);
-            }
-        });
-        return result;
-
-    }
 
     //create a sprite from an object
     function createFromTiledObject (element, group) {
@@ -487,40 +238,52 @@ window.onload = function () {
 
     }
 
-    function setupDialogueBox() {
-        dialogue = game.add.graphics(game.camera.view.width - 9 * 16, game.camera.view.height - 4 * 16);
-        dialogue.fixedToCamera = true;
-        dialogue.anchor.setTo(0, 0);
+    //find objects in a Tiled layer that contains a property called "type" equal to a certain value
+    function findObjectsByType(type, map, layer) {
 
-        dialogueBox = dialogue.addChild(game.add.graphics(0, 0));
-        dialogueBox.beginFill("#000000");
-        dialogueBox.drawRect(0, 0, 8 * 16, 3 * 16);
+      var result = new Array();
+      map.objects[layer].forEach(function(element) {
+        if(element.properties.type === type) {
+          result.push(element);
+        }
+      });
+      return result;
 
-        dialogueText = dialogue.addChild(game.add.image(dialogueBoxMarginX, dialogueBoxMarginY, font));
-        font.setText("", true, -1, 0, Phaser.RetroFont.ALIGN_LEFT, true);
     }
 
-    function drawDialogueBox(string, mode = "bottom") {
-        console.log("drawDialogueBox mode: " + mode);
-        if (mode === "bottom"){
-            dialogue.cameraOffset.y = game.camera.height - (4 * 16 - 16 * 0.5);
-        }
-        else if(mode === "up") {
-            dialogue.cameraOffset.y = (1 * 16 - 16 * 0.5);
-        }
-        else{
-          return;
-        }
+    function collect(player, collectable) {
+      //drawDialogueBox("Yummy!");
+      dialogue.write(game, player, "Yummy!");
 
-        player.isTalking = true;
-        font.text = string;
-        dialogueBox.alpha = 1;
+      //remove sprite
+      collectable.destroy();
     }
 
-    function clearDialogueBox() {
-        dialogueBox.alpha = 0;
-        font.text = "";
-        player.isTalking = false;
+    function enterStairs(player, stairs) {
+      dialogue.write(game, player,"Entering stairs that\nwill take you to\n" + stairs.targetTilemap + "\non x:" + stairs.targetX + "and y:" + stairs.targetY);
+    }
+
+    function processCallbackEnterStairs() {
+      if(!isCollidingStairs && checkOverlapStairs(player)) {
+        isCollidingStairs = true;
+        return true;
+      }
+      else{
+        return false;
+      }
+    }
+
+    function checkOverlapStairs(obj1) {
+      var boundsA = obj1.getBounds();
+      var boundsB = stairs.getBounds();
+
+      if(Phaser.Rectangle.intersects(boundsA, boundsB)) {
+        return true;
+      }
+      else{
+        isCollidingStairs = false;
+        return false;
+      }
     }
 
 };
