@@ -1,7 +1,7 @@
 'use_strict';
 
 //Enum with the different directions the player can face
-var facingDirection = {
+var direction = {
   up: 1,
   down: 2,
   left: 3,
@@ -9,7 +9,7 @@ var facingDirection = {
 };
 
 class Character extends Phaser.Sprite {
-  constructor(game, x = 0, y = 0, key = '', frame = '', width = '16', height = '16', startFacingDirection = facingDirection.down, speed = 50, tileSize = 16) {
+  constructor(game, x = 0, y = 0, key = '', frame = '', width = '16', height = '16', startDirection = direction.down, speed = 50, tileSize = 16) {
     //Setup Phaser.Sprite
     super(game, x || 0, y || 0, key || '', frame || '');
 
@@ -18,8 +18,8 @@ class Character extends Phaser.Sprite {
     this.tileSize = tileSize || 16;
 
     this._initAnimations();
-    this._initBody(width, height);
-    this._initStartingPosition(startFacingDirection);
+    this._initBody(game, width, height);
+    this._initStartingPosition(startDirection);
 
     game.add.existing(this);
   }
@@ -35,55 +35,93 @@ class Character extends Phaser.Sprite {
     this.animations.add('left', [4, 5, 6, 7], 5, true);
   }
 
-  _initBody(width, height) {
+  _initBody(game, width, height) {
     this.body.setSize(width || this.tileSize || 16, height || this.tileSize || 16);
   }
 
-  _initStartingPosition(newFacingDirection) {
-    this.currentFacingDirection = newFacingDirection || facingDirection.down;
-    this.changeFacingDirection(this.currentFacingDirection);
+  _initStartingPosition(newdirection) {
+    this.currentDirection = newdirection || direction.down;
+    this.changeDirection(this.currentDirection);
   }
 
-  changeFacingDirection(newFacingDirection) {
+  changeDirection(newdirection) {
     if (this.body.velocity.x !== 0 || this.body.velocity.y !== 0) {
-      switch (newFacingDirection) {
-        case facingDirection.up:
+      switch (newdirection) {
+        case direction.up:
           this.animations.play('up');
+          this.currentDirection = direction.up;
           break;
-        case facingDirection.down:
+        case direction.down:
           this.animations.play('down');
+          this.currentDirection = direction.down;
           break;
-        case facingDirection.right:
+        case direction.right:
           this.animations.play('right');
+          this.currentDirection = direction.right;
           break;
-        case this.facingDirection.left:
+        case this.direction.left:
           this.animations.play('left');
+          this.currentDirection = direction.left;
           break;
       }
     } else {
-      switch (newFacingDirection) {
-        case facingDirection.up:
+      switch (newdirection) {
+        case direction.up:
           this.animations.play('idle-up');
+          this.currentDirection = direction.up;
           break;
-        case facingDirection.down:
+        case direction.down:
           this.animations.play('idle-down');
+          this.currentDirection = direction.down;
           break;
-        case facingDirection.right:
+        case direction.right:
           this.animations.play('idle-right');
+          this.currentDirection = direction.right;
           break;
-        case facingDirection.left:
+        case direction.left:
           this.animations.play('idle-left');
+          this.currentDirection = direction.left;
           break;
       }
     }
 
   }
 
+  moveTile(game, direction, speed, maxTime) {
+
+    var nextPosition {
+      x: 0,
+      y: 0
+    };
+
+    switch (direction) {
+      case direction.up:
+        nextPosition.y = -1 * this.tileSize;
+        break;
+      case direction.down:
+        nextPosition.y = this.tileSize;
+        break;
+      case direction.right:
+        nextPosition.x = this.tileSize;
+        break;
+      case direction.left:
+        nextPosition.x = -1 * this.tileSize;
+        break;
+    }
+
+    game.physics.arcade.moveToXY(this, this.worldPosition.x + nextPosition.x, this.worldPosition.y + nextPosition.y, speed || this.speed, maxTime || 2000);
+    game.time.events.add(maxTime || 2000, function() {
+      this.body.velocity.x = 0;
+      this.body.velocity.y = 0;
+      //NOTE: Add recursivity here, so multiple movements can be chained to make a path
+    }, this);
+  }
+
 }
 
 class Player extends Character {
-  constructor(game, cursors, x = 0, y = 0, key = '', frame = '', width = '16', height = '16', startFacingDirection = facingDirection.down, speed = 50, tileSize = 16) {
-    super(game, x, y, key, frame, width, height, startFacingDirection, speed, tileSize);
+  constructor(game, cursors, x = 0, y = 0, key = '', frame = '', width = '16', height = '16', startDirection = direction.down, speed = 50, tileSize = 16) {
+    super(game, x, y, key, frame, width, height, startDirection, speed, tileSize);
 
     //Controls setup
     this.cursors = cursors || this.game.input.keyboard.addKeys({
@@ -97,11 +135,6 @@ class Player extends Character {
 
     // Shortcut to current state object
     this.state = this.game.state.states[this.game.state.current];
-
-    // Shortcut to inverse of Pythagorean constant
-    // (used to make diagonal speed match straight speed)
-    // source: https://github.com/SaFrMo/phaser-link/blob/master/index.js
-    this.pythInverse = 1 / Math.SQRT2;
 
     //TODO: make an enum with all the possible states for this and assign the current one
     this.isTalking = false;
@@ -121,7 +154,7 @@ class Player extends Character {
     this.animations.add('left', [30, 31, 32, 33], 5, true);
   }
 
-  _initBody(width, height) {
+  _initBody(game, width, height) {
     //Body and physics
     this.game.physics.arcade.enable(this);
     this.body.colliderWorldBounds = true;
@@ -138,6 +171,10 @@ class Player extends Character {
 
     if (!this.isTalking) {
       this._updatePlayerMovement();
+    } else {
+      if (this.cursors.accept.isDown) {
+
+      }
     }
   }
 
@@ -160,16 +197,16 @@ class Player extends Character {
           }
         } else if (this.cursors.down.isDown) {
           velocity.y = this.speed;
-          this.currentFacingDirection = facingDirection.down;
+          this.currentDirection = direction.down;
           this.animations.play('down');
         } else {
           if (this.cursors.right.isDown) {
             velocity.x = this.speed;
-            this.currentFacingDirection = facingDirection.right;
+            this.currentDirection = direction.right;
             this.animations.play('right');
           } else if (this.cursors.left.isDown) {
             velocity.x = -1 * this.speed;
-            this.currentFacingDirection = facingDirection.left;
+            this.currentDirection = direction.left;
             this.animations.play('left');
           }
         }
@@ -184,16 +221,16 @@ class Player extends Character {
           }
         } else if (this.cursors.up.isDown) {
           velocity.y = -1 * this.speed;
-          this.currentFacingDirection = facingDirection.up;
+          this.currentDirection = direction.up;
           this.animations.play('up');
         } else {
           if (this.cursors.right.isDown) {
             velocity.x = this.speed;
-            this.currentFacingDirection = facingDirection.right;
+            this.currentDirection = direction.right;
             this.animations.play('right');
           } else if (this.cursors.left.isDown) {
             velocity.x = -1 * this.speed;
-            this.currentFacingDirection = facingDirection.left;
+            this.currentDirection = direction.left;
             this.animations.play('left');
           }
         }
@@ -208,16 +245,16 @@ class Player extends Character {
           }
         } else if (this.cursors.left.isDown) {
           velocity.x = -1 * this.speed;
-          this.currentFacingDirection = facingDirection.left;
+          this.currentDirection = direction.left;
           this.animations.play('left');
         } else {
           if (this.cursors.up.isDown) {
             velocity.y = -1 * this.speed;
-            this.currentFacingDirection = facingDirection.up;
+            this.currentDirection = direction.up;
             this.animations.play('up');
           } else if (this.cursors.down.isDown) {
             velocity.y = this.speed;
-            this.currentFacingDirection = facingDirection.down;
+            this.currentDirection = direction.down;
             this.animations.play('down');
           }
         }
@@ -232,16 +269,16 @@ class Player extends Character {
           }
         } else if (this.cursors.right.isDown) {
           velocity.x = this.speed;
-          this.currentFacingDirection = facingDirection.right;
+          this.currentDirection = direction.right;
           this.animations.play('right');
         } else {
           if (this.cursors.up.isDown) {
             velocity.y = -1 * this.speed;
-            this.currentFacingDirection = facingDirection.up;
+            this.currentDirection = direction.up;
             this.animations.play('up');
           } else if (this.cursors.down.isDown) {
             velocity.y = this.speed;
-            this.currentFacingDirection = facingDirection.down;
+            this.currentDirection = direction.down;
             this.animations.play('down');
           }
         }
@@ -252,25 +289,25 @@ class Player extends Character {
       case 'idle-left':
         if (this.cursors.up.isDown) {
           velocity.y = -1 * this.speed;
-          this.currentFacingDirection = facingDirection.up;
+          this.currentDirection = direction.up;
           this.animations.play('up');
         }
 
         if (this.cursors.down.isDown) {
           velocity.y = this.speed;
-          this.currentFacingDirection = facingDirection.down;
+          this.currentDirection = direction.down;
           this.animations.play('down');
         }
 
         if (this.cursors.right.isDown) {
           velocity.x = this.speed;
-          this.currentFacingDirection = facingDirection.right;
+          this.currentDirection = direction.right;
           this.animations.play('right');
         }
 
         if (this.cursors.left.isDown) {
           velocity.x = -1 * this.speed;
-          this.currentFacingDirection = facingDirection.left;
+          this.currentDirection = direction.left;
           this.animations.play('left');
         }
         break;
@@ -281,19 +318,19 @@ class Player extends Character {
     if (velocity.x === 0 && velocity.y === 0) {
       switch (this.animations.currentAnim.name) {
         case 'up':
-          this.currentFacingDirection = facingDirection.up;
+          this.currentDirection = direction.up;
           this.animations.play('idle-up');
           break;
         case 'down':
-          this.currentFacingDirection = facingDirection.down;
+          this.currentDirection = direction.down;
           this.animations.play('idle-down');
           break;
         case 'right':
-          this.currentFacingDirection = facingDirection.right;
+          this.currentDirection = direction.right;
           this.animations.play('idle-right');
           break;
         case 'left':
-          this.currentFacingDirection = facingDirection.left;
+          this.currentDirection = direction.left;
           this.animations.play('idle-left');
           break;
         default:
@@ -302,6 +339,42 @@ class Player extends Character {
 
     this.body.velocity.x = velocity.x;
     this.body.velocity.y = velocity.y;
+  }
+
+}
+
+class NPC extends Character {
+  constructor(game, speech, x = 0, y = 0, key = '', frame = '', width = '16', height = '16', startDirection = direction.down, speed = 50, tileSize = 16) {
+    super(game, x, y, key, frame, width, height, startDirection, speed, tileSize);
+
+    this.speech = speech;
+  }
+  _initBody(width, height) {
+    //Body and physics
+    this.body.setSize(width || this.tileSize || 16, height || this.tileSize || 16);
+    this.game.physics.arcade.enable(this);
+  }
+
+  _facePlayerWhenTalking(playerFacingDirection) {
+    switch (playerFacingDirection) {
+      case direction.up:
+        changeDirection(direction.down);
+        break;
+      case direction.down:
+        changeDirection(direction.up);
+        break;
+      case direction.right:
+        changeDirection(direction.left);
+        break;
+      case direction.left:
+        changeDirection(direction.right);
+        break;
+    }
+  }
+
+  talk(game, dialogue, player) {
+    _facePlayerWhenTalking(player.currentDirection);
+    dialogue.write(game, player, this.speech);
   }
 
 }
