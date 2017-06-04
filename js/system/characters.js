@@ -9,19 +9,20 @@ var direction = {
 };
 
 class Character extends Phaser.Sprite {
-  constructor(game, x = 0, y = 0, key = '', frame = '', width = '16', height = '16', startDirection = direction.down, speed = 50, tileSize = 16) {
+  constructor(game, x = 0, y = 0, key = '', frame = '', width = 16, height = 16, startDirection = direction.down, speed = 50, tileSize = 16) {
     //Setup Phaser.Sprite
-    super(game, x || 0, y || 0, key || '', frame || '');
+    super(game, x, y, key, frame);
 
     //Var setup
-    this.speed = speed || 50;
-    this.tileSize = tileSize || 16;
+    this.speed = speed;
+    this.tileSize = tileSize;
 
     this._initAnimations();
     this._initBody(game, width, height);
     this._initStartingPosition(startDirection);
+    //this.direction = ["up","down","left","right"];
 
-    game.add.existing(this);
+    game.stage.addChild(this);
   }
 
   _initAnimations() {
@@ -35,12 +36,12 @@ class Character extends Phaser.Sprite {
     this.animations.add('left', [4, 5, 6, 7], 5, true);
   }
 
-  _initBody(game, width, height) {
-    this.body.setSize(width || this.tileSize || 16, height || this.tileSize || 16);
+  _initBody(game, width = this.tileSize, height = this.tileSize) {
+    this.body.setSize(width, height);
   }
 
-  _initStartingPosition(newdirection) {
-    this.currentDirection = newdirection || direction.down;
+  _initStartingPosition(newdirection = direction.down) {
+    this.currentDirection = newdirection;
     this.changeDirection(this.currentDirection);
   }
 
@@ -87,9 +88,9 @@ class Character extends Phaser.Sprite {
 
   }
 
-  moveTile(game, direction, speed, maxTime) {
+  moveTile(game, direction, speed = this.speed, maxTime = 2000) {
 
-    var nextPosition {
+    var nextPosition = {
       x: 0,
       y: 0
     };
@@ -109,8 +110,8 @@ class Character extends Phaser.Sprite {
         break;
     }
 
-    game.physics.arcade.moveToXY(this, this.worldPosition.x + nextPosition.x, this.worldPosition.y + nextPosition.y, speed || this.speed, maxTime || 2000);
-    game.time.events.add(maxTime || 2000, function() {
+    game.physics.arcade.moveToXY(this, this.worldPosition.x + nextPosition.x, this.worldPosition.y + nextPosition.y, speed, maxTime);
+    game.time.events.add(maxTime, function() {
       this.body.velocity.x = 0;
       this.body.velocity.y = 0;
       //NOTE: Add recursivity here, so multiple movements can be chained to make a path
@@ -154,14 +155,14 @@ class Player extends Character {
     this.animations.add('left', [30, 31, 32, 33], 5, true);
   }
 
-  _initBody(game, width, height) {
+  _initBody(game, width = this.tileSize, height = this.tileSize) {
     //Body and physics
     this.game.physics.arcade.enable(this);
     this.body.colliderWorldBounds = true;
     this.body.bounce.x = 1;
     this.body.bounce.y = 1;
     //resizing collider of player from sprite
-    this.body.setSize((width || this.tileSize || 16) - (width / 2), (height || this.tileSize || 16) / 2 - 2, (width || this.tileSize || 16) / 4, (height || this.tileSize || 16) / 2 + 1);
+    this.body.setSize(width - (width / 2), height / 2 - 2, width / 4, height / 2 + 1);
   }
 
   update() {
@@ -349,9 +350,9 @@ class NPC extends Character {
 
     this.speech = speech;
   }
-  _initBody(width, height) {
+  _initBody(width = this.tileSize, height = this.tileSize) {
     //Body and physics
-    this.body.setSize(width || this.tileSize || 16, height || this.tileSize || 16);
+    this.body.setSize(width, height);
     this.game.physics.arcade.enable(this);
   }
 

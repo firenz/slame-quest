@@ -1,14 +1,14 @@
 'use_strict';
 
-Dialogue = function(game, font, speech = '', colorBackground = 0x000000, colorText = 0xFFFFFF, marginX = 4, marginY = 6, tileSize = 16) {
-  Phaser.Graphics.call(this, game, game.camera.view.width - 9 * tileSize, game.camera.view.height - 4 * tileSize);
+Dialogue = function(game, font, speech, colorBackground, colorText, marginX, marginY, tileSize) {
+  Phaser.Graphics.call(this, game, game.camera.view.width - 9 * (tileSize || 16), game.camera.view.height - 4 * (tileSize || 16));
   //Phaser.Graphics.call(this, game, 0, 0);
 
   //var setup
   this.font = font || game.add.retroFont('mono-retrofont', 6, 9, Phaser.RetroFont.TEXT_SET1);
   this.speech = speech || '';
   this.colorBackground = colorBackground || 0x000000;
-  this.colorText = colorText;
+  this.colorText = colorText || 0xFFFFFF;
   this.marginX = marginX || 4;
   this.marginY = marginY || 6;
   this.tileSize = tileSize || 16;
@@ -31,12 +31,12 @@ Dialogue = function(game, font, speech = '', colorBackground = 0x000000, colorTe
 
   //IMPORTANT
   game.add.existing(this);
-}
+};
 
 Dialogue.prototype = Object.create(Phaser.Graphics.prototype);
 Dialogue.prototype.constructor = Dialogue;
-Dialogue.prototype.write = function(game, player, string, mode = "bottom") {
-
+Dialogue.prototype.write = function(game, player, string, mode) {
+  mode = mode || "bottom";
   if (mode === "bottom") {
     this.cameraOffset.y = game.camera.height - (4 * this.tileSize - this.tileSize * 0.5);
   } else if (mode === "up") {
@@ -55,11 +55,11 @@ Dialogue.prototype.clear = function(player) {
   this.font.text = "";
   player.isTalking = false;
 };
-Dialogue.prototype.changeBackgroundColor = function(newColor = 0x000000) {
-  this.colorBackground = newColor;
+Dialogue.prototype.changeBackgroundColor = function(newColor) {
+  this.colorBackground = newColor || 0x000000;
   this.background.beginFill(this.colorBackground);
 };
-Dialogue.prototype.changeTextColor = function(newColor = 0xFFFFFF) {
-  this.colorText = newColor;
+Dialogue.prototype.changeTextColor = function(newColor) {
+  this.colorText = newColor || 0xFFFFFF;
   this.text.tint = this.colorText;
 };

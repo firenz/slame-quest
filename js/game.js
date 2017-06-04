@@ -16,7 +16,6 @@ window.onload = function () {
     });
 
     var cursors;
-    var graphics;
 
     //var for player
     var player;
